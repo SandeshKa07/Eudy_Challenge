@@ -19,11 +19,15 @@ static ssize_t my_misc_write(struct file *file, const char __user *buffer,
 			     size_t count, loff_t *ppos)
 {
 	char wbuffer[idLen];
+	ssize_t retVal;
 
 	if (count != idLen)
 		return -EINVAL;
 
-	if (copy_from_user(wbuffer, buffer, count))
+	retVal = simple_write_to_buffer(wbuffer, sizeof(myassignID),
+					ppos, buffer, count - 1);
+
+	if (retVal < 0)
 		return -EFAULT;
 
 	if (strncmp(myassignID, wbuffer, (idLen - 1)))
