@@ -19,16 +19,16 @@ static ssize_t my_misc_write(struct file *file, const char __user *buffer,
 			     size_t count, loff_t *ppos)
 {
 	char wbuffer[idLen];
-	ssize_t retVal;
+	ssize_t retval;
 
 	if (count != idLen)
 		return -EINVAL;
 
-	retVal = simple_write_to_buffer(wbuffer, sizeof(myassignID),
+	retval = simple_write_to_buffer(wbuffer, sizeof(myassignID),
 					ppos, buffer, count - 1);
 
-	if (retVal < 0)
-		return -EFAULT;
+	if (retval < 0)
+		return retval;
 
 	if (strncmp(myassignID, wbuffer, (idLen - 1)))
 		return -EINVAL;
@@ -50,21 +50,12 @@ static struct miscdevice my_misc_device = {
 
 static int __init my_misc_init(void)
 {
-	int error;
-
-	pr_info("\nHello World\n");
-	error = misc_register(&my_misc_device);
-	if (error) {
-		pr_err("\n Error Registering the misc device\n");
-		return error;
-	}
-	return 0;
+	return misc_register(&my_misc_device);
 }
 
 static void __exit my_misc_exit(void)
 {
 	misc_deregister(&my_misc_device);
-	pr_info("Good Bye\n");
 }
 
 module_init(my_misc_init);
