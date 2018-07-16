@@ -5,6 +5,7 @@
 #include <linux/uaccess.h>
 #include <linux/fs.h>
 #include <linux/printk.h>
+#include <linux/jiffies.h>
 
 #define myassignID "a89cef62eae7"
 #define idLen 13
@@ -53,10 +54,18 @@ static int __init module_startup(void)
 		pr_info("Failed to create the directory under /debugfs\n");
 		return -ENODEV;
 	}
+
 	my_id_file = debugfs_create_file("id", 0666, my_dir, NULL,
 					 &my_misc_fops);
 	if (!my_id_file) {
 		pr_info("Failed to create a file under /debugfs/eudyptula\n");
+		return -ENODEV;
+	}
+
+	my_id_file = debugfs_create_u32("jiffies", 0444, my_dir,
+					     (u32*)&jiffies);
+	if (!my_id_file) {
+		pr_info("Failed to create a jiffies file under /debugfs/eudyptula\n");
 		return -ENODEV;
 	}
 
