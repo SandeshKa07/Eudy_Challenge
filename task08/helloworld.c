@@ -13,6 +13,9 @@
 static struct dentry *my_dir;
 static struct dentry *my_id_file;
 
+static DEFINE_SEMAPHORE(foo_semaphore);
+static char my_foo_data[PAGE_SIZE];
+
 static ssize_t my_misc_read(struct file *file, char __user *buffer,
 			    size_t count, loff_t *ppos)
 {
@@ -47,6 +50,45 @@ static const struct file_operations my_misc_fops = {
 	.write = my_misc_write,
 };
 
+static ssize_t foo_read(struct file *file, char __user *buffer,
+				size_t count, loff_t *ppos)
+{
+	int result = 0;
+
+	down(&foo_semaphore);
+
+	result = simple_read_from_buffer(buffer, count, ppos, my_foo_data,
+				strlen(my_foo_data));
+
+	up(&foo_semaphore);
+
+	return result;
+}
+
+static ssize_t foo_write(struct file *file, const char __user *buffer,
+				size_t count, loff_t *ppos)
+{
+	int result = 0;
+
+	down(&foo_semaphore);
+
+	if (count <= PAGE_SIZE) {
+		result = simple_write_to_buffer(my_foo_data, PAGE_SIZE,
+						ppos, buffer, count);
+	} else
+		result = -EINVAL;
+
+	up(&foo_semaphore);
+
+	return result;
+}
+
+static const struct file_operations my_foo_fops = {
+	.owner		= THIS_MODULE,
+	.read		= foo_read,
+	.write		= foo_write,
+};
+
 static int __init module_startup(void)
 {
 	my_dir = debugfs_create_dir("eudyptula", NULL);
@@ -66,6 +108,13 @@ static int __init module_startup(void)
 					     (u32*)&jiffies);
 	if (!my_id_file) {
 		pr_info("Failed to create a jiffies file under /debugfs/eudyptula\n");
+		return -ENODEV;
+	}
+
+	my_id_file = debugfs_create_file("foo", 0666, my_dir, NULL,
+					 &my_foo_fops);
+	if (!my_id_file) {
+		pr_info("Failed to create a file under /debugfs/eudyptula\n");
 		return -ENODEV;
 	}
 
