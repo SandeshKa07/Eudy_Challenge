@@ -1,0 +1,11 @@
+root@sandy:/home/sandesh/work/eudy_results/task08# cat results_task08.txt 
+root@sandy:/home/sandesh# dmesg 
+root@sandy:/home/sandesh# insmod work/Eudy_Challenge/task08/helloworld.ko 
+root@sandy:/home/sandesh# lsmod | grep -i helloworld
+helloworld             16384  0
+root@sandy:/home/sandesh# 
+root@sandy:/home/sandesh# cd /sys/kernel/debug/eudyptula/
+root@sandy:/sys/kernel/debug/eudyptula# ls
+id
+root@sandy:/sys/kernel/debug/eudyptula# cat id 
+a89cef62eae7
